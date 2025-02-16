@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=zt_user
+      - POSTGRES_PASSWORD=zt_pass
+      - POSTGRES_DB=zt_db
+    volumes:
+      - postgres_data_zt:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zt_user -d zt_db"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - zt_net
+
+  keycloak:
+    build: .
+    container_name: keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      - KC_DB=postgres
+      - KC_DB_USERNAME=keycloak_user
+      - KC_DB_PASSWORD=keycloak_pass
+      - KC_DB_URL_HOST=postgres
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=keycloak_db
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - keycloak_data_zt:/opt/keycloak/data
+    networks:
+      - zt_net
+
+  envoy:
+    image: envoyproxy/envoy:v1.30.1
+    container_name: envoy
+    restart: always
+    ports:
+      - "9901:9901" # Admin Interface
+      - "10000:10000" # API Gateway Port
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - zt_net
+
+volumes:
+  postgres_data_zt:
+  keycloak_data_zt:
+
+networks:
+  zt_net:
+    driver: bridge
