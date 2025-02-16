@@ -23,22 +23,22 @@ static_resources:
                   virtual_hosts:
                     - name: backend
                       domains: ["*"]
+                      cors:
+                        allow_origin_string_match:
+                          - prefix: "*"
+                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,authorization
+                        max_age: "1728000"
                       routes:
                         - match:
                             prefix: "/api"
                           route:
                             cluster: backend_cluster
-                          typed_per_filter_config:
-                            envoy.filters.http.jwt_authn:
-                              "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
-                              requirement_name: "keycloak_auth"
-                      cors:
-                        allow_origin_string_match:
-                          - prefix: "*"
-                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
-                        allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
-                        max_age: "1728000"
+
                 http_filters:
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
                   - name: envoy.filters.http.jwt_authn
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
@@ -47,12 +47,12 @@ static_resources:
                           issuer: "http://localhost:8080/realms/zero-trust"
                           remote_jwks:
                             http_uri:
-                              uri: "http://localhost:8080/realms/zero-trust/protocol/openid-connect/certs"
+                              uri: "http://192.168.2.103:8080/realms/zero-trust/protocol/openid-connect/certs"
                               cluster: keycloak_cluster
                               timeout: 5s
                           from_headers:
                             - name: Authorization
-                              value_prefix: "Bearer "
+                              value_prefix: "Bearer"
                           forward: true
                       rules:
                         - match:
@@ -74,7 +74,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: localhost
+                      address: 192.168.2.103
                       port_value: 3000
 
     - name: keycloak_cluster
@@ -87,5 +87,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: localhost
+                      address: 192.168.2.103
                       port_value: 8080

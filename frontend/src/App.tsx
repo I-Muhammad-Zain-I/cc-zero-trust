@@ -19,6 +19,8 @@ function App() {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${auth?.user.access_token}`,
+        // "Access-Control-Allow-Origin": "http://localhost:5173",
+        // "Access-Control-Allow-Credentials": "true",
       },
     });
     if (!response.ok) {
