@@ -44,10 +44,10 @@ static_resources:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
                       providers:
                         keycloak_auth:
-                          issuer: "http://localhost:8080/realms/zero-trust"
+                          issuer: "http://localhost:8080/realms/finance-zero-trust"
                           remote_jwks:
                             http_uri:
-                              uri: "http://192.168.2.103:8080/realms/zero-trust/protocol/openid-connect/certs"
+                              uri: "http://192.168.2.100:8080/realms/finance-zero-trust/protocol/openid-connect/certs"
                               cluster: keycloak_cluster
                               timeout: 5s
                           from_headers:
@@ -59,6 +59,20 @@ static_resources:
                             prefix: "/api"
                           requires:
                             provider_name: "keycloak_auth"
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+                      transport_api_version: V3 # Explicit V3 API :contentReference[oaicite:0]{index=0}
+                      grpc_service:
+                        google_grpc:
+                          target_uri: opa:9191
+                          stat_prefix: ext_authz
+                        timeout: 1s
+                      with_request_body:
+                        max_request_bytes: 131072
+                        allow_partial_message: true
+                        pack_as_bytes: true
+                      failure_mode_allow: false
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -74,7 +88,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 192.168.2.103
+                      address: 192.168.2.100
                       port_value: 3000
 
     - name: keycloak_cluster
@@ -87,5 +101,18 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: 192.168.2.103
+                      address: 192.168.2.100
                       port_value: 8080
+    - name: opa_cluster
+      connect_timeout: 5s
+      type: LOGICAL_DNS
+      load_assignment:
+        cluster_name: opa_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: opa # Docker Compose service name
+                      port_value: 9191 # gRPC plugin port
+

@@ -44,7 +44,7 @@ services:
       - zt_net
 
   envoy:
-    image: envoyproxy/envoy:v1.30.1
+    image: envoyproxy/envoy:v1.34-latest
     container_name: envoy
     restart: always
     ports:
@@ -52,6 +52,28 @@ services:
       - "10000:10000" # API Gateway Port
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - zt_net
+
+  opa:
+    image: openpolicyagent/opa:latest-istio
+    container_name: opa
+    command:
+      - "run"
+      - "--server"
+      #      - "--log-level=debug"
+      - "--log-format=json-pretty"
+      - "--set=grpc.enable=true" # Explicitly enable gRPC
+      - "--set=grpc.addr=:9191"
+      - "--set=plugins.envoy_ext_authz_grpc.addr=:9191"
+      - "--set=plugins.envoy_ext_authz_grpc.path=envoy/authz/allow"
+      - "--set=decision_logs.console=true"
+      - "/policy/finance.rego"
+    volumes:
+      - ./policy/finance.rego:/policy/finance.rego
+    ports:
+      - "8181:8181"
+      - "9191:9191"
     networks:
       - zt_net
 

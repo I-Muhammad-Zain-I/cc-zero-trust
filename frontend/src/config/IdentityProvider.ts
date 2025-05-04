@@ -1,8 +1,8 @@
 import { UserManager } from "oidc-client-ts";
 
 export const userManager = new UserManager({
-  authority: "http://localhost:8080/realms/zero-trust",
-  client_id: "vite-frontend",
+  authority: "http://localhost:8080/realms/finance-zero-trust",
+  client_id: "finance-frontend",
   redirect_uri: `${window.location.origin}${window.location.pathname}`,
   response_type: "code",
   post_logout_redirect_uri: window.location.origin,

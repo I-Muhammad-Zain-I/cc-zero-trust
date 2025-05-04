@@ -4,7 +4,11 @@ import cors from "cors";
 const app = express();
 app.use(cors());
 
-app.get("/api", (req, res) => {
+app.post("/api", (req, res) => {
+  console.count("route hit");
+  res.status(200).json("Transaction Success");
+});
+app.get("/api/check", (req, res) => {
   console.count("route hit");
   res.status(200).json("Api hit successful");
 });
