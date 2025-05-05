@@ -1,6 +1,7 @@
 import "./App.css";
 import { useAuth } from "react-oidc-context";
 import { useState } from "react";
+import encryptField from "./encryption";
 
 const roleMap = {
   finance_user: "Finance User",
@@ -23,7 +24,7 @@ function App() {
   const auth = useAuth();
 
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  // const [currency, setCurrency] = useState("USD");
   const [status, setStatus] = useState("");
 
   const getGeoPosition = (): Promise<GeolocationPosition> =>
@@ -59,10 +60,13 @@ function App() {
     };
 
     const timestamp = new Date().toISOString();
+    const encrypted_userId = await encryptField(userId);
+    const encrypted_amount = await encryptField(amount);
+    console.log({ encrypted_userId });
 
     const payload = {
       user: {
-        userId,
+        data: encrypted_userId,
         role,
       },
       context: {
@@ -71,8 +75,8 @@ function App() {
         time: timestamp,
       },
       transaction: {
-        amount: parseFloat(amount),
-        currency,
+        data: encrypted_amount,
+        // currency,
       },
     };
 
@@ -135,7 +139,7 @@ function App() {
               placeholder="Enter amount"
             />
           </div>
-          <div className="form-group">
+          {/* <div className="form-group">
             <label>Currency</label>
             <select
               value={currency}
@@ -145,7 +149,7 @@ function App() {
               <option value="PKR">PKR</option>
               <option value="EUR">EUR</option>
             </select>
-          </div>
+          </div> */}
           <div className="buttons">
             <button onClick={apiTestHandler}>Send Transaction</button>
             <button className="logout" onClick={() => auth.signoutRedirect()}>

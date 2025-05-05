@@ -1,5 +1,6 @@
 {
+  "role": "finance_user",
   "risk_score": 12,
-  "avg_txn_24h": 12900,
-  "failed_logins": 1
+  "avg_txn_24h": 900,
+  "failed_logins": 0
 }

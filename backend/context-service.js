@@ -24,5 +24,5 @@ app.get("/context/:userId", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Context service listening on ${port}`);
+  console.log(`CONTEXT server listening on ${port}`);
 });

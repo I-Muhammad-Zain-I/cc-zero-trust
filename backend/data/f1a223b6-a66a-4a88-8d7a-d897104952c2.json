@@ -1,0 +1,6 @@
+{
+  "role": "compliance_officer",
+  "risk_score": 55,
+  "avg_txn_24h": 40000,
+  "failed_logins": 1
+}

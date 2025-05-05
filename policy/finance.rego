@@ -6,11 +6,18 @@ allow if {
     print("ENTERED POLICY")
 
     parsed_body := input.parsed_body
-    user := parsed_body.user
-    role := user.role
-    user_id := user.userId
-    txn := parsed_body.transaction
+
+    encrypted_payload := {
+        "user": parsed_body.user.data,
+        "transaction": parsed_body.transaction.data
+    }
+    decrypted_payload  := decrypt_data(encrypted_payload)
+
+    role := parsed_body.user.role
     ctx := parsed_body.context
+    user_id := decrypted_payload.user
+    txn_amount := to_number(decrypted_payload.transaction)
+
 
     # Fetch risk context
     url := sprintf("http://host.docker.internal:4000/context/%s", [user_id])
@@ -32,7 +39,7 @@ allow if {
     # Decision logic
     print("Evaluating role: ", role)
 
-   allowed_role_decision(role, txn.amount, risk_score, ctx.geo)
+   allowed_role_decision(role, txn_amount, risk_score, ctx.geo)
 }
 
 allowed_role_decision("finance_user", amount, risk_score, _) if {
@@ -87,6 +94,26 @@ is_high_risk_geo(geo) if {
     lat < 81.8574
     lon > 19.6389
     lon < 190.0000
+
+    # Pakistan
+    # lat > 20
+    # lat < 30
+    # lon > 50
+    # lon < 70
 }
 
 
+decrypt_data(encrypted_data)  = decrypted if {
+    url := "http://host.docker.internal:5000/decrypt"
+    body := encrypted_data
+    resp := http.send({
+        "method": "POST",
+        "url": url,
+        "headers": {"Content-Type": "application/json"},
+        "body": body
+    })
+    print(resp.body.decrypted)
+    not resp.error
+    resp.status_code == 200
+    decrypted := resp.body.decrypted
+}

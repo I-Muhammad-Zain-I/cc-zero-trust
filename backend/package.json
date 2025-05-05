@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "context": "nodemon context-service.js",
-    "start:both": "concurrently \"npm run dev\" \"npm run context\"",
+    "decrypt": "nodemon decrypt-service.js",
+    "start:all": "concurrently \"npm run dev\" \"npm run context\" \"npm run decrypt\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -24,6 +25,7 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "nodemon": "^3.1.9"
   },
